@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Entrar no amigo secreto</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#2433C9">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@700;800&family=Figtree:wght@400;600;700&family=Caveat:wght@700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <span class="logo">
+      <svg viewBox="0 0 40 40" aria-hidden="true"><rect x="5" y="9" width="30" height="22" rx="2" fill="#FFFFFF"/><path d="M5 20h30" stroke="#C7CCFF" stroke-width="2"/><rect x="15" y="5" width="10" height="7" fill="#FFD84A" transform="rotate(-6 20 8)"/></svg>
+      Papelzinho
+    </span>
+  </header>
+
+  <section class="center" id="loading">
+    <h1>Abrindo o <em>convite…</em></h1>
+  </section>
+
+  <section class="center" id="fail" hidden>
+    <div>
+      <h1>Esse convite <em>não abriu.</em></h1>
+      <p class="lede" id="fail-msg"></p>
+    </div>
+  </section>
+
+  <section class="center" id="form-view" hidden>
+    <div>
+      <h1>Bora pro <em id="g-name"></em></h1>
+      <p class="lede" id="f-lede">Escreva seu nome e o seu e-mail. Quando o sorteio sair, seu papelzinho chega por lá. Ninguém fica sabendo quem tirou quem, nem quem organiza.</p>
+    </div>
+
+    <form class="paper" id="join-form" novalidate>
+      <div class="field"><label class="label" for="j-name">Seu nome</label><input id="j-name" maxlength="60" autocomplete="name" placeholder="Como a turma te conhece"></div>
+      <div class="field"><label class="label" for="j-mail">Seu e-mail</label><input id="j-mail" type="email" inputmode="email" maxlength="120" autocomplete="email" placeholder="voce@email.com"></div>
+      <div class="field">
+        <label class="label" for="j-tip">Dica de presente (opcional)</label>
+        <textarea id="j-tip" maxlength="200" placeholder="Tamanho, gostos, o que você não quer ganhar…"></textarea>
+        <p class="hint">Só quem tirar você vai ver a dica.</p>
+      </div>
+      <div class="error" id="join-error" hidden></div>
+      <button class="btn btn-cta" type="submit" id="join-btn">Quero participar</button>
+    </form>
+
+    <div class="paper plain" id="who" hidden>
+      <div class="paper-head"><h2>Já estão dentro</h2><span class="count" id="who-count"></span></div>
+      <div class="chips" id="who-list"></div>
+    </div>
+
+    <p class="secret-note">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+      Seu e-mail fica guardado só até o sorteio e serve só para mandar o seu papelzinho. Depois do sorteio, a lista é apagada.
+    </p>
+  </section>
+
+  <section class="center" id="done" hidden>
+    <div>
+      <h1><span id="d-name"></span>, você <em>está dentro.</em></h1>
+      <p class="lede" id="d-lede"></p>
+    </div>
+    <div class="paper plain">
+      <h2>E agora?</h2>
+      <p style="margin:0;color:var(--muted)">Fique de olho no seu e-mail. O papelzinho chega com o assunto “Seu papelzinho do <span id="d-group"></span> chegou”. Se não aparecer, olhe no spam e na aba Promoções.</p>
+    </div>
+  </section>
+</div>
+<script src="/assets/join.js"></script>
+</body>
+</html>

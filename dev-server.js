@@ -6,6 +6,8 @@ import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
 import { createDrawHandler, createRevealHandler, createPurgeHandler, gmailTransport } from './lib/handlers.js';
 import { purgeSentCopies } from './lib/sent-copies.js';
+import { createGroupsHandler, createJoinHandler } from './lib/groups.js';
+import { createStore, memoryStore } from './lib/store.js';
 
 const PORT = Number(process.env.PORT) || 3000;
 const real = Boolean(process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD);
@@ -30,7 +32,11 @@ const outboxTransport = () => ({
   close() {},
 });
 
-const draw = createDrawHandler({ env, makeTransport: real ? gmailTransport : outboxTransport });
+// Sem KV_REST_API_URL/TOKEN no ambiente, as inscrições ficam num banco em memória (somem ao reiniciar).
+const store = createStore(env) || memoryStore();
+const draw = createDrawHandler({ env, makeTransport: real ? gmailTransport : outboxTransport, store });
+const groups = createGroupsHandler({ env, store });
+const joinH = createJoinHandler({ env, store });
 const reveal = createRevealHandler({ env });
 const TYPES = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.svg': 'image/svg+xml' };
 
@@ -43,6 +49,8 @@ http.createServer(async (req, res) => {
     if (url.pathname === '/api/draw') return draw(req, res);
     if (url.pathname === '/api/reveal') return reveal(req, res);
     if (url.pathname === '/api/purge') return purge(req, res);
+    if (url.pathname === '/api/groups') return groups(req, res);
+    if (url.pathname === '/api/join') return joinH(req, res);
     res.statusCode = 404;
     return res.end();
   }

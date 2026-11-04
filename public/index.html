@@ -61,6 +61,49 @@
 
       <div class="col">
         <div class="paper">
+          <div class="field">
+            <label class="label" for="ev-pass">Senha do organizador</label>
+            <input id="ev-pass" type="password" autocomplete="current-password">
+            <p class="hint">Libera a inscrição por link e o envio. Não fica salva.</p>
+          </div>
+        </div>
+
+        <div class="paper" id="groups">
+          <div class="paper-head"><h2>Inscrição por link</h2><span class="count" id="g-count"></span></div>
+          <p class="hint" id="g-intro" style="margin:0">Mande um link e cada pessoa se cadastra sozinha, com e-mail e dica. Depois você traz os inscritos para a lista abaixo.</p>
+          <div class="error" id="g-error" hidden></div>
+          <button class="btn btn-ghost" type="button" id="g-load">Abrir minhas turmas</button>
+
+          <div id="g-panel" class="col" style="gap:14px" hidden>
+            <div class="excl-add" style="grid-template-columns:1fr auto">
+              <select id="g-select" class="inline-input" aria-label="Turma"></select>
+              <button class="btn btn-quiet" type="button" id="g-refresh">Atualizar</button>
+            </div>
+
+            <div id="g-detail" class="col" style="gap:12px" hidden>
+              <div class="field">
+                <label class="label" for="g-link">Link de inscrição</label>
+                <div class="excl-add" style="grid-template-columns:1fr auto">
+                  <input id="g-link" class="inline-input" readonly>
+                  <button class="btn btn-ghost" type="button" id="g-copy">Copiar</button>
+                </div>
+              </div>
+              <p class="hint" id="g-status" style="margin:0"></p>
+              <div class="add-actions">
+                <button class="btn btn-ghost" type="button" id="g-import">Trazer inscritos para a lista</button>
+                <button class="btn btn-quiet" type="button" id="g-close"></button>
+                <button class="btn btn-quiet" type="button" id="g-delete">Apagar turma</button>
+              </div>
+            </div>
+
+            <form class="excl-add" id="g-new" style="grid-template-columns:1fr auto" novalidate>
+              <input id="g-new-name" class="inline-input" maxlength="80" placeholder="Nome da nova turma, ex.: Família 2026" aria-label="Nome da nova turma">
+              <button class="btn btn-ghost" type="submit">Criar turma</button>
+            </form>
+          </div>
+        </div>
+
+        <div class="paper">
           <div class="paper-head"><h2>Participantes</h2><span class="count" id="count"></span></div>
           <ul class="people" id="people"></ul>
           <form class="add" id="add-form" novalidate>
@@ -76,10 +119,6 @@
         </div>
 
         <div class="paper">
-          <div class="field">
-            <label class="label" for="ev-pass">Senha do organizador</label>
-            <input id="ev-pass" type="password" autocomplete="current-password">
-          </div>
           <div class="verdict no" id="last-draw" hidden></div>
           <div class="error" id="draw-error" hidden></div>
           <button class="btn btn-cta" id="go-draw" type="button">Sortear e enviar</button>

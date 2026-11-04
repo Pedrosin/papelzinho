@@ -98,7 +98,7 @@ test('ponta a ponta: e-mails, links e sigilo', async () => {
     // sigilo: a resposta ao organizador não tem token nem par
     const raw = JSON.stringify(r.body);
     assert.ok(!raw.includes('/r#'));
-    assert.deepEqual(Object.keys(r.body).sort(), ['copies', 'sent', 'stamp']);
+    assert.deepEqual(Object.keys(r.body).sort(), ['copies', 'groupDeleted', 'groupLeftovers', 'sent', 'stamp']);
     assert.deepEqual(Object.keys(r.body.sent[0]).sort(), ['email', 'name', 'ok']);
     assert.equal(r.body.copies.length, group.length);
     assert.deepEqual(new Set(r.body.copies), new Set(t.outbox.map((m) => m.messageId)));

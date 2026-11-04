@@ -14,6 +14,14 @@ Sorteio de amigo secreto por e-mail. O organizador cadastra a turma, separa quem
 - O link sai da barra de endereço assim que a página abre.
 - Se um e-mail se perder, não dá para reenviar: é preciso sortear de novo. Cada e-mail traz a data e hora do sorteio e vale o mais recente.
 
+## Inscrição por link (opcional)
+
+Em vez de digitar todo mundo, crie uma turma no painel **Inscrição por link** e mande o link `/entrar#código`. Cada pessoa coloca nome, e-mail e dica; quem tem o link vê só o primeiro nome de quem já entrou. No painel você clica em **Trazer inscritos para a lista** e segue normal (separações, sorteio).
+
+- Precisa do banco gratuito **Upstash Redis**: na Vercel, **Storage → Create Database → Upstash for Redis**, conecte ao projeto e faça **Redeploy**. As variáveis `KV_REST_API_URL` e `KV_REST_API_TOKEN` entram sozinhas.
+- O banco guarda só os inscritos, nunca o resultado. A lista é apagada quando o sorteio sai inteiro, ou sozinha em 60 dias.
+- Com o banco ligado, o freio contra chute de senha passa a valer de verdade (5 erros por IP ou 30 no geral travam 15 minutos).
+
 ## Publicar na Vercel (grátis)
 
 1. Entre em [vercel.com](https://vercel.com) com a conta do GitHub.

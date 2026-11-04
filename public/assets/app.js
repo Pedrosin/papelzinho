@@ -19,7 +19,7 @@
       const raw = localStorage.getItem(KEY);
       if (raw) {
         const s = JSON.parse(raw);
-        if (s && Array.isArray(s.people)) state = { people: s.people, excl: s.excl || [], next: s.next || 1, event: s.event || {}, lastDraw: s.lastDraw || '' };
+        if (s && Array.isArray(s.people)) state = { people: s.people, excl: s.excl || [], next: s.next || 1, event: s.event || {}, lastDraw: s.lastDraw || '', importedGroup: s.importedGroup || '' };
       }
     } catch { /* sem armazenamento: segue sem rascunho */ }
   }
@@ -283,6 +283,8 @@
       participants: P.map(({ name, email, tip }) => ({ name, email, tip })),
       exclusions: state.excl.map(([a, b]) => [idx.get(a), idx.get(b)]),
       event: Object.fromEntries(EVENT_FIELDS.map((f) => [f, clean($('#ev-' + f).value)])),
+      // turma de onde vieram os inscritos: se tudo sair, o servidor apaga a lista de inscrição
+      group: state.importedGroup || undefined,
     };
 
     setSent('sending');
@@ -342,6 +344,13 @@
       $('#sent-lede').textContent = 'Como o resultado não fica guardado, não dá para reenviar só pra quem falhou. Corrija o e-mail e sorteie de novo: todo mundo recebe um papelzinho novo. Avise a turma que vale só o e-mail mais recente.';
       $('#sent-title').textContent = 'Envio parcial';
     }
+    if (data.groupDeleted) {
+      state.importedGroup = '';
+      save();
+      $('#sent-lede').textContent += ' A lista de inscrição da turma foi apagada do servidor.';
+    } else if (data.groupLeftovers) {
+      $('#sent-lede').textContent += ` Atenção: ${data.groupLeftovers} pessoa${data.groupLeftovers > 1 ? 's' : ''} inscrita${data.groupLeftovers > 1 ? 's' : ''} pelo link não estava${data.groupLeftovers > 1 ? 'm' : ''} neste sorteio. A turma não foi apagada; confira no painel de inscrição.`;
+    }
     $('#sent-note').hidden = false;
     $('#back').hidden = false;
     purgeCopies(password, data.copies || []);
@@ -369,6 +378,143 @@
   }
 
   $('#back').addEventListener('click', () => { setSent('setup'); render(); });
+
+  // ---------- inscrição por link (turmas no servidor) ----------
+  let groups = [];
+  let current = null; // código da turma escolhida
+
+  function gError(msg) {
+    const e = $('#g-error');
+    e.textContent = msg || '';
+    e.hidden = !msg;
+  }
+  async function gApi(body) {
+    const password = $('#ev-pass').value;
+    if (!password) {
+      gError('Digite a senha do organizador logo acima.');
+      $('#ev-pass').focus();
+      return null;
+    }
+    gError('');
+    let r, data;
+    try {
+      r = await fetch('/api/groups', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password, ...body }) });
+      data = await r.json().catch(() => ({}));
+    } catch {
+      gError('Sem conexão com o servidor. Tente de novo.');
+      return null;
+    }
+    if (!r.ok) {
+      gError(data.needsStore
+        ? 'Falta ligar o banco gratuito das inscrições na Vercel (Storage → Upstash for Redis → conectar ao projeto papelzinho) e fazer Redeploy.'
+        : data.error || `Erro ${r.status}.`);
+      if (r.status === 401) $('#ev-pass').select();
+      return null;
+    }
+    return data;
+  }
+  const joinLink = (code) => `${location.origin}/entrar#${code}`;
+
+  function renderGroups() {
+    $('#g-panel').hidden = false;
+    $('#g-load').hidden = true;
+    $('#g-intro').hidden = groups.length > 0;
+    $('#g-count').textContent = groups.length ? (groups.length === 1 ? '1 turma' : `${groups.length} turmas`) : '';
+    const sel = $('#g-select');
+    sel.innerHTML = groups.length
+      ? groups.map((g) => `<option value="${g.code}">${esc(g.name)} · ${g.count} inscrito${g.count === 1 ? '' : 's'}${g.closed ? ' · encerrada' : ''}</option>`).join('')
+      : '<option value="">Nenhuma turma ainda. Crie uma abaixo.</option>';
+    if (!groups.some((g) => g.code === current)) current = groups[0]?.code || null;
+    if (current) sel.value = current;
+    sel.disabled = !groups.length;
+    const g = groups.find((x) => x.code === current);
+    $('#g-detail').hidden = !g;
+    if (!g) return;
+    $('#g-link').value = joinLink(g.code);
+    $('#g-status').textContent = `${g.count} inscrito${g.count === 1 ? '' : 's'}. ${g.closed ? 'Inscrições encerradas: ninguém novo entra.' : 'Inscrições abertas.'} A lista some sozinha em 60 dias, ou quando o sorteio sair inteiro.`;
+    $('#g-close').textContent = g.closed ? 'Reabrir inscrições' : 'Encerrar inscrições';
+    const del = $('#g-delete');
+    del.dataset.armed = '';
+    del.textContent = 'Apagar turma';
+  }
+
+  async function loadGroups() {
+    const d = await gApi({ action: 'list' });
+    if (!d) return;
+    groups = d.groups;
+    renderGroups();
+  }
+
+  $('#g-load').addEventListener('click', loadGroups);
+  $('#g-refresh').addEventListener('click', loadGroups);
+  $('#g-select').addEventListener('change', (e) => { current = e.target.value || null; renderGroups(); });
+
+  $('#g-new').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = clean($('#g-new-name').value);
+    if (!name) { gError('Dê um nome para a turma.'); return; }
+    const d = await gApi({ action: 'create', name });
+    if (!d) return;
+    $('#g-new-name').value = '';
+    current = d.group.code;
+    if (!clean($('#ev-name').value)) { $('#ev-name').value = name; state.event.name = name; save(); }
+    await loadGroups();
+  });
+
+  $('#g-copy').addEventListener('click', async () => {
+    const input = $('#g-link');
+    try {
+      await navigator.clipboard.writeText(input.value);
+      $('#g-copy').textContent = 'Copiado';
+      setTimeout(() => { $('#g-copy').textContent = 'Copiar'; }, 1800);
+    } catch {
+      input.select();
+    }
+  });
+
+  $('#g-close').addEventListener('click', async () => {
+    const g = groups.find((x) => x.code === current);
+    if (!g) return;
+    if (await gApi({ action: 'close', code: g.code, closed: !g.closed })) await loadGroups();
+  });
+
+  $('#g-delete').addEventListener('click', async () => {
+    const b = $('#g-delete');
+    if (b.dataset.armed !== '1') {
+      b.dataset.armed = '1';
+      b.textContent = 'Clique de novo para apagar';
+      setTimeout(() => { b.dataset.armed = ''; b.textContent = 'Apagar turma'; }, 4000);
+      return;
+    }
+    if (await gApi({ action: 'delete', code: current })) {
+      if (state.importedGroup === current) { state.importedGroup = ''; save(); }
+      current = null;
+      await loadGroups();
+    }
+  });
+
+  $('#g-import').addEventListener('click', async () => {
+    const d = await gApi({ action: 'people', code: current, closeAfter: true });
+    if (!d) return;
+    let added = 0, already = 0, full = 0;
+    for (const p of d.people) {
+      const email = String(p.email || '').toLowerCase();
+      const nameTaken = state.people.some((x) => x.name.toLocaleLowerCase('pt-BR') === String(p.name).toLocaleLowerCase('pt-BR'));
+      if (!email || state.people.some((x) => x.email === email) || nameTaken) { already++; continue; }
+      if (state.people.length >= 60) { full++; continue; }
+      state.people.push({ id: state.next++, name: p.name, email, tip: p.tip || '' });
+      added++;
+    }
+    state.importedGroup = current;
+    render();
+    const parts = [`${added} pessoa${added === 1 ? '' : 's'} entr${added === 1 ? 'ou' : 'aram'} na lista`];
+    if (already) parts.push(`${already} já estava${already === 1 ? '' : 'm'} (mesmo e-mail ou nome)`);
+    if (full) parts.push(`${full} ficou${full === 1 ? '' : 'aram'} de fora porque a lista chegou a 60`);
+    await loadGroups();
+    $('#g-status').textContent = d.people.length
+      ? `${parts.join('; ')}. As inscrições foram encerradas para ninguém entrar depois e ficar fora do sorteio. Se faltar alguém, reabra.`
+      : 'Ninguém se inscreveu ainda. Mande o link pra turma.';
+  });
 
   load();
   for (const f of EVENT_FIELDS) $('#ev-' + f).value = state.event?.[f] || '';

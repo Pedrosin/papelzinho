@@ -20,115 +20,128 @@
       <svg viewBox="0 0 40 40" aria-hidden="true"><rect x="5" y="9" width="30" height="22" rx="2" fill="#FFFFFF"/><path d="M5 20h30" stroke="#C7CCFF" stroke-width="2"/><rect x="15" y="5" width="10" height="7" fill="#FFD84A" transform="rotate(-6 20 8)"/></svg>
       Papelzinho
     </a>
-    <span class="draft" id="draft-note">Rascunho salvo neste navegador · <button class="link-btn" id="clear-all" type="button">começar do zero</button></span>
+    <button class="btn btn-on-table btn-small" id="logout" type="button" hidden>Sair</button>
   </header>
 
-  <!-- ORGANIZAR -->
-  <section id="s-setup" class="col">
+  <!-- ENTRADA -->
+  <section id="s-lock" class="flow" hidden>
     <div>
-      <h1>Escreva os nomes.<br>A gente <em>dobra os papeizinhos.</em></h1>
-      <p class="lede">Cadastre quem participa, diga quem não pode tirar quem e aperte o botão. Cada pessoa recebe por e-mail só o próprio papelzinho.</p>
+      <h1>Seu amigo secreto, <em>sem ninguém espiar.</em></h1>
+      <p class="lede">O sorteio acontece no servidor e cada pessoa recebe por e-mail só o próprio papelzinho. Nem quem organiza fica sabendo quem tirou quem.</p>
+    </div>
+    <form class="paper" id="lock-form" novalidate>
+      <div class="field">
+        <label class="label" for="lock-pass">Senha do organizador</label>
+        <input id="lock-pass" type="password" autocomplete="current-password">
+        <p class="hint">Vale até você fechar esta aba.</p>
+      </div>
+      <div class="error" id="lock-error" hidden></div>
+      <button class="btn btn-cta" type="submit" id="lock-btn">Entrar</button>
+    </form>
+  </section>
+
+  <!-- MONTAGEM -->
+  <section id="s-setup" class="flow" hidden>
+    <div>
+      <h1>Monte o sorteio <em>em 4 passos.</em></h1>
+      <p class="lede">Tudo o que você preenche fica salvo neste navegador até o sorteio.</p>
     </div>
 
-    <div class="setup">
-      <div class="col">
-        <div class="paper">
-          <h2>O amigo secreto</h2>
-          <div class="field"><label class="label" for="ev-name">Nome</label><input id="ev-name" maxlength="80" placeholder="Amigo Secreto 2026"></div>
-          <div class="row2">
-            <div class="field"><label class="label" for="ev-value">Valor sugerido</label><div class="money"><span>R$</span><input id="ev-value" inputmode="decimal" maxlength="16" placeholder="100,00"></div></div>
-            <div class="field"><label class="label" for="ev-date">Data da troca</label><input id="ev-date" type="date"></div>
-          </div>
-          <div class="row2">
-            <div class="field"><label class="label" for="ev-time">Horário</label><input id="ev-time" type="time"></div>
-            <div class="field"><label class="label" for="ev-place">Local</label><input id="ev-place" maxlength="80" placeholder="Casa da Ana"></div>
-          </div>
-          <div class="field"><label class="label" for="ev-msg">Recado pra turma (opcional)</label><textarea id="ev-msg" maxlength="300" placeholder="Nada de meia. Capricha!"></textarea></div>
-        </div>
+    <!-- 1 -->
+    <div class="paper step">
+      <div class="step-head"><span class="step-n">1</span><h2>O amigo secreto</h2></div>
+      <div class="field"><label class="label" for="ev-name">Nome</label><input id="ev-name" maxlength="80" placeholder="Amigo Secreto 2026"></div>
+      <div class="row2">
+        <div class="field"><label class="label" for="ev-value">Valor sugerido</label><div class="money"><span>R$</span><input id="ev-value" inputmode="decimal" maxlength="16" placeholder="100,00"></div></div>
+        <div class="field"><label class="label" for="ev-place">Local</label><input id="ev-place" maxlength="80" placeholder="Casa da Ana"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label class="label" for="ev-date">Data da troca</label><input id="ev-date" type="date"></div>
+        <div class="field"><label class="label" for="ev-time">Horário</label><input id="ev-time" type="time"></div>
+      </div>
+      <div class="field"><label class="label" for="ev-msg">Recado pra turma (opcional)</label><textarea id="ev-msg" maxlength="300" placeholder="Nada de meia. Capricha!"></textarea></div>
+    </div>
 
-        <div class="paper">
-          <div class="paper-head"><h2>Quem não pode tirar quem</h2></div>
-          <div class="chips" id="chips"></div>
-          <div class="excl-add">
-            <select id="ex-a" class="inline-input" aria-label="Primeira pessoa"></select>
-            <span class="sep">e</span>
-            <select id="ex-b" class="inline-input" aria-label="Segunda pessoa"></select>
-            <button class="btn btn-ghost" id="ex-add" type="button">Separar</button>
+    <!-- 2 -->
+    <div class="paper step">
+      <div class="step-head"><span class="step-n">2</span><h2>Quem participa</h2><span class="count" id="count"></span></div>
+
+      <div class="seg" role="tablist" aria-label="Como colocar as pessoas">
+        <button type="button" role="tab" id="tab-type" aria-selected="true">Digitar nomes</button>
+        <button type="button" role="tab" id="tab-link" aria-selected="false">Mandar link</button>
+      </div>
+
+      <form class="add" id="add-form" novalidate>
+        <input class="inline-input" id="add-name" placeholder="Nome" aria-label="Nome" maxlength="60" autocomplete="off">
+        <input class="inline-input" id="add-mail" type="email" placeholder="e-mail" aria-label="E-mail" maxlength="120" autocomplete="off">
+        <input class="inline-input wide" id="add-tip" placeholder="Dica de presente (opcional)" aria-label="Dica de presente" maxlength="200" autocomplete="off">
+        <div class="error wide" id="add-error" hidden></div>
+        <div class="add-actions wide">
+          <button class="btn btn-ghost" type="submit" id="add-submit">Adicionar pessoa</button>
+          <button class="btn btn-quiet" type="button" id="add-cancel" hidden>Cancelar</button>
+        </div>
+      </form>
+
+      <div class="add link-box" id="link-box" hidden>
+        <p class="hint wide" id="g-intro" style="margin:0">Cada pessoa abre o link e coloca nome, e-mail e dica. Depois você traz os inscritos para a lista aqui embaixo.</p>
+        <div class="error wide" id="g-error" hidden></div>
+
+        <form class="excl-add wide" id="g-new" style="grid-template-columns:1fr auto" novalidate>
+          <input id="g-new-name" class="inline-input" maxlength="80" placeholder="Nome da turma" aria-label="Nome da turma">
+          <button class="btn btn-ghost" type="submit" id="g-new-btn">Criar link</button>
+        </form>
+
+        <div id="g-detail" class="wide col" style="gap:12px" hidden>
+          <select id="g-select" class="inline-input" aria-label="Turma" hidden></select>
+          <div class="excl-add" style="grid-template-columns:1fr auto">
+            <input id="g-link" class="inline-input" readonly aria-label="Link de inscrição">
+            <button class="btn btn-ghost" type="button" id="g-copy">Copiar link</button>
           </div>
-          <div class="verdict" id="verdict" role="status"></div>
+          <p class="g-status" id="g-status"></p>
+          <button class="btn btn-ghost" type="button" id="g-import">Trazer inscritos pra lista</button>
+          <div class="g-more">
+            <button class="link-btn dark" type="button" id="g-refresh">Atualizar</button>
+            <button class="link-btn dark" type="button" id="g-close"></button>
+            <button class="link-btn dark" type="button" id="g-other">Criar outro link</button>
+            <button class="link-btn dark" type="button" id="g-delete">Apagar este link</button>
+          </div>
         </div>
       </div>
 
-      <div class="col">
-        <div class="paper">
-          <div class="field">
-            <label class="label" for="ev-pass">Senha do organizador</label>
-            <input id="ev-pass" type="password" autocomplete="current-password">
-            <p class="hint">Libera a inscrição por link e o envio. Não fica salva.</p>
-          </div>
+      <ul class="people" id="people"></ul>
+    </div>
+
+    <!-- 3 -->
+    <div class="paper step">
+      <div class="step-head"><span class="step-n">3</span><h2>Quem não pode tirar quem</h2></div>
+      <p class="hint" id="excl-wait" style="margin:0">Fica disponível quando a lista tiver pelo menos 4 pessoas. Serve para casais, irmãos ou quem se tirou no ano passado.</p>
+      <div id="excl-body" class="col" style="gap:14px" hidden>
+        <div class="chips" id="chips"></div>
+        <div class="excl-add">
+          <select id="ex-a" class="inline-input" aria-label="Primeira pessoa"></select>
+          <span class="sep">e</span>
+          <select id="ex-b" class="inline-input" aria-label="Segunda pessoa"></select>
+          <button class="btn btn-ghost" id="ex-add" type="button">Separar</button>
         </div>
-
-        <div class="paper" id="groups">
-          <div class="paper-head"><h2>Inscrição por link</h2><span class="count" id="g-count"></span></div>
-          <p class="hint" id="g-intro" style="margin:0">Mande um link e cada pessoa se cadastra sozinha, com e-mail e dica. Depois você traz os inscritos para a lista abaixo.</p>
-          <div class="error" id="g-error" hidden></div>
-          <button class="btn btn-ghost" type="button" id="g-load">Abrir minhas turmas</button>
-
-          <div id="g-panel" class="col" style="gap:14px" hidden>
-            <div class="excl-add" style="grid-template-columns:1fr auto">
-              <select id="g-select" class="inline-input" aria-label="Turma"></select>
-              <button class="btn btn-quiet" type="button" id="g-refresh">Atualizar</button>
-            </div>
-
-            <div id="g-detail" class="col" style="gap:12px" hidden>
-              <div class="field">
-                <label class="label" for="g-link">Link de inscrição</label>
-                <div class="excl-add" style="grid-template-columns:1fr auto">
-                  <input id="g-link" class="inline-input" readonly>
-                  <button class="btn btn-ghost" type="button" id="g-copy">Copiar</button>
-                </div>
-              </div>
-              <p class="hint" id="g-status" style="margin:0"></p>
-              <div class="add-actions">
-                <button class="btn btn-ghost" type="button" id="g-import">Trazer inscritos para a lista</button>
-                <button class="btn btn-quiet" type="button" id="g-close"></button>
-                <button class="btn btn-quiet" type="button" id="g-delete">Apagar turma</button>
-              </div>
-            </div>
-
-            <form class="excl-add" id="g-new" style="grid-template-columns:1fr auto" novalidate>
-              <input id="g-new-name" class="inline-input" maxlength="80" placeholder="Nome da nova turma, ex.: Família 2026" aria-label="Nome da nova turma">
-              <button class="btn btn-ghost" type="submit">Criar turma</button>
-            </form>
-          </div>
-        </div>
-
-        <div class="paper">
-          <div class="paper-head"><h2>Participantes</h2><span class="count" id="count"></span></div>
-          <ul class="people" id="people"></ul>
-          <form class="add" id="add-form" novalidate>
-            <input class="inline-input" id="add-name" placeholder="Nome" aria-label="Nome" maxlength="60" autocomplete="off">
-            <input class="inline-input" id="add-mail" type="email" placeholder="e-mail" aria-label="E-mail" maxlength="120" autocomplete="off">
-            <input class="inline-input wide" id="add-tip" placeholder="Dica de presente (opcional)" aria-label="Dica de presente" maxlength="200" autocomplete="off">
-            <div class="error wide" id="add-error" hidden></div>
-            <div class="add-actions wide">
-              <button class="btn btn-ghost" type="submit" id="add-submit">Adicionar pessoa</button>
-              <button class="btn btn-quiet" type="button" id="add-cancel" hidden>Cancelar</button>
-            </div>
-          </form>
-        </div>
-
-        <div class="paper">
-          <div class="verdict no" id="last-draw" hidden></div>
-          <div class="error" id="draw-error" hidden></div>
-          <button class="btn btn-cta" id="go-draw" type="button">Sortear e enviar</button>
-        </div>
-        <p class="secret-note">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
-          O sorteio acontece no servidor e não fica salvo em lugar nenhum. Nem você, que organiza, vai saber quem tirou quem.
-        </p>
+        <div class="verdict" id="verdict" role="status"></div>
       </div>
     </div>
+
+    <!-- 4 -->
+    <div class="paper step">
+      <div class="step-head"><span class="step-n">4</span><h2>Sortear</h2></div>
+      <div class="summary" id="summary"></div>
+      <div class="verdict no" id="last-draw" hidden></div>
+      <p class="why-not" id="why-not" hidden></p>
+      <div class="error" id="draw-error" hidden></div>
+      <button class="btn btn-cta" id="go-draw" type="button">Sortear e enviar</button>
+    </div>
+
+    <p class="secret-note">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+      O sorteio acontece no servidor e não fica salvo em lugar nenhum. Nem você, que organiza, vai saber quem tirou quem.
+    </p>
+    <p class="draft">Rascunho salvo neste navegador · <button class="link-btn" id="clear-all" type="button">começar do zero</button></p>
   </section>
 
   <!-- RESULTADO DO ENVIO -->

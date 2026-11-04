@@ -152,4 +152,27 @@ h2{font-family:var(--display);font-weight:700;font-size:17px;letter-spacing:-.01
 .tap{color:var(--on-table-muted);font-size:14px;margin:0}
 .stage.open ~ .tap{visibility:hidden}
 
+/* fluxo em passos (tela do organizador) */
+.flow{max-width:760px;margin:0 auto;width:100%;display:flex;flex-direction:column;gap:28px}
+.flow h1{font-size:clamp(30px,5vw,48px)}
+.step-head{display:flex;align-items:center;gap:12px}
+.step-head .count{margin-left:auto}
+.step-n{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--table);color:var(--on-table);font-family:var(--display);font-weight:800;font-size:14px}
+.btn-small{padding:8px 16px;font-size:14px}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--paper-2);border-radius:999px;padding:4px;gap:4px}
+.seg button{border:0;background:transparent;border-radius:999px;padding:10px 12px;font-weight:700;color:var(--muted);cursor:pointer}
+.seg button[aria-selected="true"]{background:var(--paper);color:var(--table);box-shadow:0 1px 3px rgba(20,22,51,.15)}
+.link-box{grid-template-columns:1fr}
+.g-status{margin:0;font-size:14px;color:var(--ink)}
+.g-status b{font-variant-numeric:tabular-nums}
+.g-more{display:flex;flex-wrap:wrap;gap:6px 18px}
+.link-btn.dark{color:var(--muted)}
+.link-btn.dark:hover{color:var(--table)}
+.summary{display:flex;flex-wrap:wrap;gap:8px}
+.summary span{background:var(--paper-2);border-radius:999px;padding:6px 12px;font-size:14px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+.summary span.miss{background:transparent;border:1.5px dashed var(--rule);color:var(--muted);font-weight:500}
+.why-not{margin:0;font-size:14px;font-weight:600;color:#9C1C35}
+.draft{margin:0;text-align:center}
+.btn-ghost:disabled{opacity:.5;cursor:not-allowed;background:var(--paper);color:var(--table)}
+
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{transition-duration:.01ms!important;animation-duration:.01ms!important}}

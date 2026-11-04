@@ -213,3 +213,11 @@ test('sorteio não apaga turma se tem inscrito que ficou de fora', async () => {
   assert.equal(r.body.groupDeleted, false);
   assert.equal(r.body.groupLeftovers, 1);
 });
+
+test('banco: acha as variáveis com ou sem prefixo, nunca o token só-leitura', async () => {
+  const { storeConfig } = await import('../lib/store.js');
+  assert.deepEqual(storeConfig({ KV_REST_API_URL: 'https://a.upstash.io', KV_REST_API_TOKEN: 't' }), { url: 'https://a.upstash.io', token: 't' });
+  assert.deepEqual(storeConfig({ STORAGE_KV_REST_API_URL: 'https://b.upstash.io/', STORAGE_KV_REST_API_TOKEN: 'u', STORAGE_KV_REST_API_READ_ONLY_TOKEN: 'ro' }), { url: 'https://b.upstash.io', token: 'u' });
+  assert.deepEqual(storeConfig({ UPSTASH_REDIS_REST_URL: 'https://c.upstash.io', UPSTASH_REDIS_REST_TOKEN: 'v' }), { url: 'https://c.upstash.io', token: 'v' });
+  assert.equal(storeConfig({ KV_URL: 'rediss://x', REDIS_URL: 'rediss://y' }), null);
+});

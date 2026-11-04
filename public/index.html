@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Papelzinho</title>
+<meta name="description" content="Sorteio de amigo secreto com papelzinho por e-mail. Ninguém fica sabendo quem tirou quem.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#2433C9">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@700;800&family=Figtree:wght@400;600;700&family=Caveat:wght@700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="logo" href="/">
+      <svg viewBox="0 0 40 40" aria-hidden="true"><rect x="5" y="9" width="30" height="22" rx="2" fill="#FFFFFF"/><path d="M5 20h30" stroke="#C7CCFF" stroke-width="2"/><rect x="15" y="5" width="10" height="7" fill="#FFD84A" transform="rotate(-6 20 8)"/></svg>
+      Papelzinho
+    </a>
+    <span class="draft" id="draft-note">Rascunho salvo neste navegador · <button class="link-btn" id="clear-all" type="button">começar do zero</button></span>
+  </header>
+
+  <!-- ORGANIZAR -->
+  <section id="s-setup" class="col">
+    <div>
+      <h1>Escreva os nomes.<br>A gente <em>dobra os papeizinhos.</em></h1>
+      <p class="lede">Cadastre quem participa, diga quem não pode tirar quem e aperte o botão. Cada pessoa recebe por e-mail só o próprio papelzinho.</p>
+    </div>
+
+    <div class="setup">
+      <div class="col">
+        <div class="paper">
+          <h2>O amigo secreto</h2>
+          <div class="field"><label class="label" for="ev-name">Nome</label><input id="ev-name" maxlength="80" placeholder="Amigo Secreto 2026"></div>
+          <div class="row2">
+            <div class="field"><label class="label" for="ev-value">Valor sugerido</label><div class="money"><span>R$</span><input id="ev-value" inputmode="decimal" maxlength="16" placeholder="100,00"></div></div>
+            <div class="field"><label class="label" for="ev-date">Data da troca</label><input id="ev-date" type="date"></div>
+          </div>
+          <div class="row2">
+            <div class="field"><label class="label" for="ev-time">Horário</label><input id="ev-time" type="time"></div>
+            <div class="field"><label class="label" for="ev-place">Local</label><input id="ev-place" maxlength="80" placeholder="Casa da Ana"></div>
+          </div>
+          <div class="field"><label class="label" for="ev-msg">Recado pra turma (opcional)</label><textarea id="ev-msg" maxlength="300" placeholder="Nada de meia. Capricha!"></textarea></div>
+        </div>
+
+        <div class="paper">
+          <div class="paper-head"><h2>Quem não pode tirar quem</h2></div>
+          <div class="chips" id="chips"></div>
+          <div class="excl-add">
+            <select id="ex-a" class="inline-input" aria-label="Primeira pessoa"></select>
+            <span class="sep">e</span>
+            <select id="ex-b" class="inline-input" aria-label="Segunda pessoa"></select>
+            <button class="btn btn-ghost" id="ex-add" type="button">Separar</button>
+          </div>
+          <div class="verdict" id="verdict" role="status"></div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="paper">
+          <div class="paper-head"><h2>Participantes</h2><span class="count" id="count"></span></div>
+          <ul class="people" id="people"></ul>
+          <form class="add" id="add-form" novalidate>
+            <input class="inline-input" id="add-name" placeholder="Nome" aria-label="Nome" maxlength="60" autocomplete="off">
+            <input class="inline-input" id="add-mail" type="email" placeholder="e-mail" aria-label="E-mail" maxlength="120" autocomplete="off">
+            <input class="inline-input wide" id="add-tip" placeholder="Dica de presente (opcional)" aria-label="Dica de presente" maxlength="200" autocomplete="off">
+            <div class="error wide" id="add-error" hidden></div>
+            <div class="add-actions wide">
+              <button class="btn btn-ghost" type="submit" id="add-submit">Adicionar pessoa</button>
+              <button class="btn btn-quiet" type="button" id="add-cancel" hidden>Cancelar</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="paper">
+          <div class="field">
+            <label class="label" for="ev-pass">Senha do organizador</label>
+            <input id="ev-pass" type="password" autocomplete="current-password">
+          </div>
+          <div class="verdict no" id="last-draw" hidden></div>
+          <div class="error" id="draw-error" hidden></div>
+          <button class="btn btn-cta" id="go-draw" type="button">Sortear e enviar</button>
+        </div>
+        <p class="secret-note">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+          O sorteio acontece no servidor e não fica salvo em lugar nenhum. Nem você, que organiza, vai saber quem tirou quem.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- RESULTADO DO ENVIO -->
+  <section id="s-sent" hidden>
+    <div class="center">
+      <div>
+        <h1 id="sent-h1">Dobrando os <em>papeizinhos…</em></h1>
+        <p class="lede" id="sent-lede">Sorteando e enviando os e-mails. Não feche esta página.</p>
+      </div>
+      <div class="paper">
+        <div class="paper-head"><h2 id="sent-title">Enviando…</h2><span class="count" id="sent-count"></span></div>
+        <div class="progress busy" id="progress"><i></i></div>
+        <ul class="sent" id="sent"></ul>
+        <div class="verdict" id="purge" role="status" hidden></div>
+      </div>
+      <p class="secret-note" id="sent-note" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+        <span>O resultado já foi descartado. Se alguém não achar o e-mail, peça pra olhar o spam e a aba Promoções. Se sumiu de vez, é preciso sortear de novo: todo mundo recebe um papelzinho novo e vale só o e-mail mais recente.</span>
+      </p>
+      <div><button class="btn btn-on-table" id="back" type="button" hidden>Voltar para a lista</button></div>
+    </div>
+  </section>
+</div>
+<script src="/assets/app.js"></script>
+</body>
+</html>

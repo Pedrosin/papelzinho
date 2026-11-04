@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Seu papelzinho</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#2433C9">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@700;800&family=Figtree:wght@400;600;700&family=Caveat:wght@700&display=swap">
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <span class="logo">
+      <svg viewBox="0 0 40 40" aria-hidden="true"><rect x="5" y="9" width="30" height="22" rx="2" fill="#FFFFFF"/><path d="M5 20h30" stroke="#C7CCFF" stroke-width="2"/><rect x="15" y="5" width="10" height="7" fill="#FFD84A" transform="rotate(-6 20 8)"/></svg>
+      Papelzinho
+    </span>
+  </header>
+
+  <section class="reveal" id="loading">
+    <div><h1>Buscando seu <em>papelzinho…</em></h1></div>
+  </section>
+
+  <section class="reveal" id="fail" hidden>
+    <div>
+      <h1>Esse papelzinho <em>rasgou.</em></h1>
+      <p class="lede" id="fail-msg"></p>
+    </div>
+  </section>
+
+  <section class="reveal" id="ok" hidden>
+    <div>
+      <h1><span id="g-name"></span>, <em>quem será?</em></h1>
+      <p class="lede">Toque no papelzinho para abrir. Confira se ninguém está olhando.</p>
+    </div>
+    <div class="stage" id="stage">
+      <div class="slip-wrap">
+        <button class="slip" id="slip" type="button" aria-label="Abrir papelzinho">
+          <span class="inside">
+            <span class="you-got">Você tirou</span>
+            <span class="drawn" id="r-name"></span>
+          </span>
+          <span class="flap">
+            <span class="face front"><span class="tape"></span><span class="seal">?</span><span class="to" id="to"></span></span>
+            <span class="face back"><span class="you-got" id="slip-event"></span></span>
+          </span>
+        </button>
+      </div>
+    </div>
+    <div class="after">
+      <div class="paper plain tip-card" id="tip-card">
+        <span class="label" id="tip-label"></span>
+        <p id="tip"></p>
+      </div>
+      <div class="facts" id="facts"></div>
+      <div class="paper plain tip-card" id="msg-card" hidden>
+        <span class="label">Recado do organizador</span>
+        <p class="msg" id="msg"></p>
+      </div>
+      <button class="btn btn-on-table" id="fold" type="button">Dobrar de novo</button>
+      <p class="tap" id="stamp" style="visibility:visible"></p>
+    </div>
+    <p class="tap">O nome só aparece depois do toque.</p>
+  </section>
+</div>
+<script src="/assets/reveal.js"></script>
+</body>
+</html>

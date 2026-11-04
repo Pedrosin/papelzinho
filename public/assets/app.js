@@ -356,9 +356,11 @@
     const imp = $('#g-import');
     imp.disabled = !g.count;
     imp.textContent = g.count ? `Trazer ${plural(g.count, 'inscrito', 'inscritos')} pra lista` : 'Ninguém se inscreveu ainda';
-    $('#g-close').textContent = g.closed ? 'Reabrir inscrições' : 'Encerrar inscrições';
+    $('#g-close span').textContent = g.closed ? 'Reabrir inscrições' : 'Encerrar inscrições';
+    // cadeado fechado = vai encerrar; aberto = vai reabrir
+    $('#g-close path').setAttribute('d', g.closed ? 'M8 11V7a4 4 0 0 1 7.5-2' : 'M8 11V7a4 4 0 0 1 8 0v4');
     const del = $('#g-delete');
-    if (del.dataset.armed !== '1') del.textContent = 'Apagar este link';
+    if (del.dataset.armed !== '1') { del.classList.remove('armed'); $('#g-delete span').textContent = 'Apagar este link'; }
   }
 
   async function loadGroups() {
@@ -368,7 +370,12 @@
     render();
   }
 
-  $('#g-refresh').addEventListener('click', loadGroups);
+  $('#g-refresh').addEventListener('click', async () => {
+    const b = $('#g-refresh');
+    b.classList.add('spin');
+    await loadGroups();
+    setTimeout(() => b.classList.remove('spin'), 300);
+  });
   $('#g-select').addEventListener('change', (e) => { current = e.target.value || null; render(); });
   $('#g-other').addEventListener('click', () => { showNew = true; $('#g-new-name').value = ''; render(); $('#g-new-name').focus(); });
 
@@ -405,7 +412,8 @@
     const b = $('#g-delete');
     if (b.dataset.armed !== '1') {
       b.dataset.armed = '1';
-      b.textContent = 'Clique de novo para apagar';
+      b.classList.add('armed');
+      $('#g-delete span').textContent = 'Clique de novo para apagar';
       setTimeout(() => { b.dataset.armed = ''; renderLink(); }, 4000);
       return;
     }

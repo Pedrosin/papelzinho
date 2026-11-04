@@ -165,7 +165,16 @@ h2{font-family:var(--display);font-weight:700;font-size:17px;letter-spacing:-.01
 .link-box{grid-template-columns:1fr}
 .g-status{margin:0;font-size:14px;color:var(--ink)}
 .g-status b{font-variant-numeric:tabular-nums}
-.g-more{display:flex;flex-wrap:wrap;gap:6px 18px}
+.g-more{display:flex;flex-wrap:wrap;gap:8px}
+.mini-btn{display:inline-flex;align-items:center;gap:7px;border:1.5px solid var(--rule);background:var(--paper);color:var(--ink);border-radius:999px;padding:7px 14px 7px 11px;font-size:14px;font-weight:600;cursor:pointer;transition:border-color .15s,color .15s,background .15s}
+.mini-btn svg{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.mini-btn:hover{border-color:var(--table);color:var(--table)}
+.mini-btn.danger{color:var(--bad)}
+.mini-btn.danger:hover{border-color:var(--bad);background:#FDE8EC;color:var(--bad)}
+.mini-btn.danger.armed{background:var(--bad);border-color:var(--bad);color:var(--paper)}
+.mini-btn.spin svg{animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (max-width:520px){.g-more{display:grid;grid-template-columns:1fr 1fr}.mini-btn{justify-content:center}}
 .link-btn.dark{color:var(--muted)}
 .link-btn.dark:hover{color:var(--table)}
 .summary{display:flex;flex-wrap:wrap;gap:8px}

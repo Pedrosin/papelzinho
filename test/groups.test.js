@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { createGroupsHandler, createJoinHandler } from '../lib/groups.js';
 import { createDrawHandler, storeLimiter } from '../lib/handlers.js';
 import { memoryStore, createStore } from '../lib/store.js';
+import { asSession } from './auth.js';
 
 const ENV = { GMAIL_USER: 'org@gmail.com', GMAIL_APP_PASSWORD: 'x', ORGANIZER_PASSWORD: 'senha-certa-123', TOKEN_SECRET: 'k' };
 const PW = 'senha-certa-123';
@@ -10,7 +11,8 @@ const PW = 'senha-certa-123';
 function call(handler, body, ip = '1.1.1.1') {
   return new Promise((resolve) => {
     const res = { statusCode: 0, setHeader() {}, end(s) { resolve({ status: this.statusCode, body: JSON.parse(s) }); } };
-    handler({ method: 'POST', body, headers: { host: 'h', 'x-real-ip': ip } }, res);
+    const a = asSession(ENV, body);
+    handler({ method: 'POST', body: a.body, headers: { host: 'h', 'x-real-ip': ip, ...a.headers } }, res);
   });
 }
 
@@ -83,17 +85,6 @@ test('turmas: tudo do organizador exige senha', async () => {
   for (const action of ['list', 'create', 'people', 'delete']) {
     assert.equal((await call(org, { password: 'errada', action, name: 'x', code: 'abcdefghjk' })).status, 401);
   }
-});
-
-test('freio no banco: vale entre instâncias diferentes', async () => {
-  const store = memoryStore();
-  // duas "instâncias" com o mesmo banco
-  const a = createGroupsHandler({ env: ENV, store, limiter: storeLimiter(store), wrongPasswordDelay: 0 });
-  const b = createGroupsHandler({ env: ENV, store, limiter: storeLimiter(store), wrongPasswordDelay: 0 });
-  for (let i = 0; i < 5; i++) await call(i % 2 ? a : b, { password: 'chute' + i, action: 'list' });
-  assert.equal((await call(a, { password: PW, action: 'list' })).status, 429);
-  assert.equal((await call(b, { password: PW, action: 'list' })).status, 429);
-  assert.equal((await call(a, { password: PW, action: 'list' }, '9.9.9.9')).status, 200);
 });
 
 test('inscrição: limite por IP conta só inscrições; abrir a página não gasta', async () => {

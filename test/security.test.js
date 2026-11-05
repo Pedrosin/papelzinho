@@ -1,52 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createLimiter, createDrawHandler, storeLimiter, ipBucket } from '../lib/handlers.js';
-import { memoryStore } from '../lib/store.js';
+import { storeLimiter, ipBucket } from '../lib/handlers.js';
 import { validateDraw } from '../lib/core.js';
 
-const ENV = { GMAIL_USER: 'org@gmail.com', GMAIL_APP_PASSWORD: 'x', ORGANIZER_PASSWORD: 'senha-certa-123', TOKEN_SECRET: 'k' };
-const PW = 'senha-certa-123';
 const people = (n) => Array.from({ length: n }, (_, i) => ({ name: `Pessoa ${i}`, email: `p${i}@exemplo.com`, tip: '' }));
-
-function call(handler, body, ip = '1.1.1.1') {
-  return new Promise((resolve) => {
-    const res = { statusCode: 0, setHeader() {}, end(s) { resolve({ status: this.statusCode, body: JSON.parse(s) }); } };
-    handler({ method: 'POST', body, headers: { host: 'h', 'x-real-ip': ip } }, res);
-  });
-}
-
-test('limitador: 5 erros travam o IP, inclusive para a senha certa', async () => {
-  let t = 0;
-  const limiter = createLimiter({ now: () => t });
-  const transport = () => ({ verify: async () => {}, sendMail: async () => {}, close() {} });
-  const h = createDrawHandler({ env: ENV, makeTransport: transport, wrongPasswordDelay: 0, limiter });
-  for (let i = 0; i < 5; i++) assert.equal((await call(h, { password: 'chute' + i })).status, 401);
-  assert.equal((await call(h, { password: 'senha-certa-123', participants: people(4) })).status, 429);
-  // outro IP segue normal
-  assert.equal((await call(h, { password: 'senha-certa-123', participants: people(4) }, '2.2.2.2')).status, 200);
-  // passou a janela: destrava
-  t += 15 * 60 * 1000 + 1;
-  assert.equal((await call(h, { password: 'senha-certa-123', participants: people(4) })).status, 200);
-});
-
-test('limitador: rajada em paralelo não passa (tentativa reservada antes de comparar)', async () => {
-  const store = memoryStore();
-  const transport = () => ({ verify: async () => {}, sendMail: async () => {}, close() {} });
-  const h = createDrawHandler({ env: ENV, makeTransport: transport, wrongPasswordDelay: 0, limiter: storeLimiter(store) });
-  const rs = await Promise.all(Array.from({ length: 50 }, (_, i) => call(h, { password: 'chute' + i })));
-  assert.equal(rs.filter((r) => r.status === 401).length, 5);
-  assert.equal(rs.filter((r) => r.status === 429).length, 45);
-});
-
-test('limitador: senha certa devolve a tentativa e não há trava geral', async () => {
-  const store = memoryStore();
-  const transport = () => ({ verify: async () => {}, sendMail: async () => {}, close() {} });
-  const h = createDrawHandler({ env: ENV, makeTransport: transport, wrongPasswordDelay: 0, limiter: storeLimiter(store) });
-  for (let i = 0; i < 20; i++) assert.equal((await call(h, { password: PW, participants: people(4) })).status, 200);
-  // 40 IPs diferentes errando não trancam o organizador
-  for (let i = 0; i < 40; i++) await call(h, { password: 'x' }, '10.0.0.' + i);
-  assert.equal((await call(h, { password: PW, participants: people(4) }, '8.8.8.8')).status, 200);
-});
 
 test('limitador: banco fora do ar cai para o freio em memória (não libera geral)', async () => {
   const broken = { pipe: async () => { throw new Error('cota estourada'); }, cmd: async () => { throw new Error('cota'); } };

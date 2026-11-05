@@ -20,7 +20,14 @@ Em vez de digitar todo mundo, crie uma turma no painel **Inscrição por link** 
 
 - Precisa do banco gratuito **Upstash Redis**: na Vercel, **Storage → Create Database → Upstash for Redis**, conecte ao projeto e faça **Redeploy**. As variáveis `KV_REST_API_URL` e `KV_REST_API_TOKEN` entram sozinhas.
 - O banco guarda só os inscritos, nunca o resultado. A lista é apagada quando o sorteio sai inteiro, ou sozinha em 60 dias.
-- Com o banco ligado, o freio contra chute de senha passa a valer de verdade (5 erros por IP ou 30 no geral travam 15 minutos).
+- Com o banco ligado, o freio contra chute de senha passa a valer entre todas as instâncias da Vercel: 5 erros por IP travam aquele IP por 15 minutos. Não existe trava geral, para ninguém conseguir trancar o organizador do lado de fora.
+
+## Login do organizador
+
+- A senha só viaja uma vez, no login, e não fica guardada no navegador. O servidor devolve um cookie de sessão `HttpOnly` (o JavaScript da página não consegue ler), `Secure`, `SameSite=Strict`, assinado com HMAC e válido por 8 horas.
+- Ao clicar em **Sair**, a sessão é revogada no servidor (com o banco ligado). Um cookie copiado antes disso deixa de servir.
+- Ao trocar a `ORGANIZER_PASSWORD` na Vercel, todas as sessões abertas caem na hora.
+- Pedido vindo de outro site é recusado mesmo que traga o cookie.
 
 ## Publicar na Vercel (grátis)
 

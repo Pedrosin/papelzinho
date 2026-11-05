@@ -1,7 +1,6 @@
 (() => {
   'use strict';
   const KEY = 'papelzinho:rascunho:v1';
-  const PASS_KEY = 'papelzinho:senha';
   const HUES = ['#FFD84A', '#FF9FB1', '#9FE3C6', '#B9C2FF', '#FFC48A', '#C9F07A', '#F5B8FF', '#8FE1F2'];
   const EMAIL_RE = /^[^\s@<>()",;]+@[^\s@<>()",;]+\.[^\s@<>()",;]{2,}$/;
   const EVENT_FIELDS = ['name', 'value', 'date', 'time', 'place', 'msg'];
@@ -18,7 +17,6 @@
 
   let state = { people: [], excl: [], next: 1, event: { name: 'Amigo Secreto ' + new Date().getFullYear() }, mode: 'type' };
   let editingId = null;
-  let password = '';
   let storeReady = null; // banco das inscrições: true ligado, false falta ligar
   let groups = [];
   let current = null;
@@ -33,7 +31,8 @@
         if (s && Array.isArray(s.people)) state = { people: s.people, excl: s.excl || [], next: s.next || 1, event: s.event || {}, lastDraw: s.lastDraw || '', importedGroup: s.importedGroup || '', mode: s.mode === 'link' ? 'link' : 'type' };
       }
     } catch { /* sem armazenamento: segue sem rascunho */ }
-    try { password = sessionStorage.getItem(PASS_KEY) || ''; } catch { /* ignora */ }
+    // versões antigas guardavam a senha aqui: apaga o que tiver sobrado
+    try { sessionStorage.removeItem('papelzinho:senha'); } catch { /* ignora */ }
   }
   function save() {
     try { localStorage.setItem(KEY, JSON.stringify(state)); } catch { /* ignora */ }
@@ -52,7 +51,7 @@
   async function post(path, body) {
     let r, data;
     try {
-      r = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password, ...body }) });
+      r = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}) });
       data = await r.json().catch(() => ({}));
     } catch {
       return { ok: false, status: 0, data: { error: 'Sem conexão com o servidor. Confira a internet e tente de novo.' } };
@@ -60,9 +59,8 @@
     return { ok: r.ok, status: r.status, data };
   }
 
+  // A senha só vai no login; a sessão fica num cookie HttpOnly que este script não enxerga.
   function lock(msg) {
-    password = '';
-    try { sessionStorage.removeItem(PASS_KEY); } catch { /* ignora */ }
     const e = $('#lock-error');
     e.textContent = msg || '';
     e.hidden = !msg;
@@ -70,37 +68,41 @@
     setTimeout(() => $('#lock-pass').focus(), 50);
   }
 
-  /** Confere a senha listando as turmas (sem efeito colateral). */
+  /** Confere a sessão listando as turmas (sem efeito colateral). */
   async function enter(silent) {
     const r = await post('/api/groups', { action: 'list' });
-    if (r.status === 401) return lock(silent ? '' : 'Senha errada.');
+    if (r.status === 401) return lock(silent ? '' : r.data.error);
     if (r.status === 429) return lock(r.data.error);
     if (r.ok) {
       storeReady = true;
       groups = r.data.groups || [];
     } else if (r.status === 503 && r.data.needsStore) {
-      storeReady = false; // senha certa, só falta o banco das inscrições
+      storeReady = false; // sessão ok, só falta o banco das inscrições
     } else {
       return lock(r.data.error || `O servidor respondeu com erro ${r.status}.`);
     }
-    try { sessionStorage.setItem(PASS_KEY, password); } catch { /* ignora */ }
     phase('setup');
     render();
   }
 
   $('#lock-form').addEventListener('submit', async (e) => {
     e.preventDefault();
-    password = $('#lock-pass').value;
-    if (!password) return lock('Digite a senha.');
+    const pass = $('#lock-pass').value;
+    $('#lock-pass').value = '';
+    if (!pass) return lock('Digite a senha.');
     const b = $('#lock-btn');
     b.disabled = true;
     b.textContent = 'Conferindo…';
-    await enter(false);
+    const r = await post('/api/session', { action: 'login', password: pass });
+    if (r.ok) await enter(false);
+    else lock(r.data.error || `O servidor respondeu com erro ${r.status}.`);
     b.disabled = false;
     b.textContent = 'Entrar';
-    $('#lock-pass').value = '';
   });
-  $('#logout').addEventListener('click', () => lock(''));
+  $('#logout').addEventListener('click', async () => {
+    await post('/api/session', { action: 'logout' });
+    lock('');
+  });
 
   // ---------- regras: sorteio possível e imprevisível (mesma conta do servidor, lib/core.js) ----------
   function matching(ok) {
@@ -319,7 +321,7 @@
   async function gApi(body) {
     gError('');
     const r = await post('/api/groups', body);
-    if (r.status === 401) { lock('A senha não confere mais. Entre de novo.'); return null; }
+    if (r.status === 401) { lock(r.data.error); return null; }
     if (!r.ok) {
       if (r.data.needsStore) storeReady = false;
       gError(r.data.needsStore
@@ -539,7 +541,7 @@
       return;
     }
     if (!r.ok || !Array.isArray(data.sent)) {
-      if (r.status === 401) return lock('A senha não confere mais. Entre de novo. Nenhum e-mail foi enviado.');
+      if (r.status === 401) return lock(r.data.error + ' Nenhum e-mail foi enviado.');
       phase('setup');
       // stage "before" = o servidor recusou antes de mandar qualquer coisa
       if (data.stage === 'before') showDrawError(data.error + ' Nenhum e-mail foi enviado.');
@@ -606,6 +608,5 @@
   // ---------- início ----------
   load();
   for (const f of EVENT_FIELDS) $('#ev-' + f).value = state.event?.[f] || '';
-  if (password) enter(true);
-  else lock('');
+  enter(true);
 })();

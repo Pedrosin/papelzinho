@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createDrawHandler, createRevealHandler, createPurgeHandler } from '../lib/handlers.js';
+import { asSession } from './auth.js';
 
 const ENV = { GMAIL_USER: 'organizador@gmail.com', GMAIL_APP_PASSWORD: 'abcd efgh ijkl mnop', ORGANIZER_PASSWORD: 'segredo-do-organizador', TOKEN_SECRET: 'chave-dos-links' };
 
@@ -30,7 +31,8 @@ function call(handler, body, method = 'POST') {
       setHeader(k, v) { this.headers[k] = v; },
       end(s) { resolve({ status: this.statusCode, body: JSON.parse(s), headers: this.headers }); },
     };
-    handler({ method, body, headers: { host: 'papelzinho.vercel.app', 'x-forwarded-proto': 'https' } }, res);
+    const a = asSession(ENV, body);
+    handler({ method, body: a.body, headers: { host: 'papelzinho.vercel.app', 'x-forwarded-proto': 'https', ...a.headers } }, res);
   });
 }
 
@@ -43,7 +45,7 @@ const group = [
 ];
 const body = (extra = {}) => ({ password: 'segredo-do-organizador', participants: group, exclusions: [[0, 1]], event: { name: 'Amigo da Firma', value: '100,00', date: '2026-12-19', time: '19:30', place: 'Casa da Ana', msg: 'Nada de meia' }, ...extra });
 
-test('senha errada: 401 e nenhum e-mail', async () => {
+test('sem sessão: 401 e nenhum e-mail', async () => {
   const t = fakeTransport();
   const h = createDrawHandler({ env: ENV, makeTransport: t.make, wrongPasswordDelay: 0 });
   const r = await call(h, body({ password: 'chute' }));
@@ -201,7 +203,7 @@ test('ORGANIZER_PASSWORD curta é recusada', async () => {
   assert.match(r.body.error, /curta demais/);
 });
 
-test('faxina de Enviados: exige senha e só aceita ids do próprio app', async () => {
+test('faxina de Enviados: exige sessão e só aceita ids do próprio app', async () => {
   const calls = [];
   const h = createPurgeHandler({ env: ENV, wrongPasswordDelay: 0, purge: async (_e, ids) => { calls.push(ids); return { total: ids.length, removed: ids.length }; } });
   const id = '<pz-0123456789abcdef-3@papelzinho>';

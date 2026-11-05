@@ -4,7 +4,7 @@
 import http from 'node:http';
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
-import { createDrawHandler, createRevealHandler, createPurgeHandler, gmailTransport } from './lib/handlers.js';
+import { createDrawHandler, createRevealHandler, createPurgeHandler, createSessionHandler, gmailTransport } from './lib/handlers.js';
 import { purgeSentCopies } from './lib/sent-copies.js';
 import { createGroupsHandler, createJoinHandler } from './lib/groups.js';
 import { createStore, memoryStore } from './lib/store.js';
@@ -17,9 +17,12 @@ const env = {
   ORGANIZER_PASSWORD: 'papelzinho-teste',
   TOKEN_SECRET: 'segredo-so-para-teste-local',
   PUBLIC_URL: `http://localhost:${PORT}`,
+  PZ_INSECURE_COOKIE: '1', // http local: cookie sem Secure/__Host-
   ...process.env,
 };
-const purge = createPurgeHandler({ env, purge: real ? purgeSentCopies : async (_e, ids) => ({ total: ids.length, removed: ids.length }) });
+// Sem KV_REST_API_URL/TOKEN no ambiente, as inscrições ficam num banco em memória (somem ao reiniciar).
+const store = createStore(env) || memoryStore();
+const purge = createPurgeHandler({ env, store, purge: real ? purgeSentCopies : async (_e, ids) => ({ total: ids.length, removed: ids.length }) });
 
 let n = 0;
 const outboxTransport = () => ({
@@ -32,8 +35,7 @@ const outboxTransport = () => ({
   close() {},
 });
 
-// Sem KV_REST_API_URL/TOKEN no ambiente, as inscrições ficam num banco em memória (somem ao reiniciar).
-const store = createStore(env) || memoryStore();
+const session = createSessionHandler({ env, store });
 const draw = createDrawHandler({ env, makeTransport: real ? gmailTransport : outboxTransport, store });
 const groups = createGroupsHandler({ env, store });
 const joinH = createJoinHandler({ env, store });
@@ -50,6 +52,7 @@ http.createServer(async (req, res) => {
     if (url.pathname === '/api/reveal') return reveal(req, res);
     if (url.pathname === '/api/purge') return purge(req, res);
     if (url.pathname === '/api/groups') return groups(req, res);
+    if (url.pathname === '/api/session') return session(req, res);
     if (url.pathname === '/api/join') return joinH(req, res);
     res.statusCode = 404;
     return res.end();

@@ -45,6 +45,8 @@ Em vez de digitar todo mundo, crie uma turma no painel **Inscrição por link** 
 
 4. **Deploy**. Mudou variável depois? Faça **Redeploy** para valer.
 
+**Marque as variáveis só em Production**, nunca em Preview nem Development. Deploy de prévia roda código de branch e de PR. Se ele tiver a senha do Gmail e a `TOKEN_SECRET`, consegue mandar e-mail pela sua conta e abrir qualquer papelzinho. Deixe ligado também o **Git Fork Protection** (Settings → Git, ligado por padrão): PR de fork só ganha deploy com a sua autorização.
+
 Limite do Gmail: cerca de 500 e-mails por dia.
 
 ## Rodar local
@@ -59,3 +61,7 @@ Abre em `http://localhost:3000`, senha `papelzinho-teste`. Os e-mails não saem:
 ```bash
 npm test
 ```
+
+## Contribuir
+
+PR é bem-vindo. Leia antes o [CONTRIBUTING.md](CONTRIBUTING.md), que traz as regras de sigilo e é o critério da revisão. Falha de segurança vai pelo [SECURITY.md](SECURITY.md), nunca em issue pública.

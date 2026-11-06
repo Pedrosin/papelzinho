@@ -5,7 +5,7 @@
   "description": "Sorteio de amigo secreto com papelzinho por e-mail. Ninguém fica sabendo quem tirou quem.",
   "type": "module",
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "scripts": {
     "test": "node --test \"test/*.test.js\"",
